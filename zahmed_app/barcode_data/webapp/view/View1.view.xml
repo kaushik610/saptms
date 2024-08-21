@@ -1,0 +1,11 @@
+<mvc:View controllerName="barcodedata.controller.View1"
+    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
+    xmlns="sap.m">
+    <Page id="page" title="{i18n>title}">
+        <content>
+        <List items="{mains>/item}">
+        <ObjectListItem intro="{mains>name}"></ObjectListItem>
+        </List>
+        </content>
+    </Page>
+</mvc:View>

@@ -1,0 +1,93 @@
+_schema-version: "3.2"
+ID: zahmed_app
+description: for practice
+version: 0.0.1
+modules:
+- name: zahmed_app-dest-content
+  type: com.sap.application.content
+  requires:
+  - name: zahmed_app-destination-service
+    parameters:
+      content-target: true
+  - name: zahmed_app-repo-host
+    parameters:
+      service-key:
+        name: zahmed_app-repo-host-key
+  - name: zahmed_app-uaa
+    parameters:
+      service-key:
+        name: zahmed_app-uaa-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: zahmed_app_repo_host
+          ServiceInstanceName: zahmed_app-html5-srv
+          ServiceKeyName: zahmed_app-repo-host-key
+          sap.cloud.service: zahmed_app
+        - Authentication: OAuth2UserTokenExchange
+          Name: zahmed_app_uaa
+          ServiceInstanceName: zahmed_app-xsuaa-srv
+          ServiceKeyName: zahmed_app-uaa-key
+          sap.cloud.service: zahmed_app
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+- name: zahmed_app-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: zahmed_app-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - barcodedata.zip
+      name: barcodedata
+      target-path: resources/
+- name: barcodedata
+  type: html5
+  path: barcode_data
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: zahmed_app-uaa
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json
+    service: xsuaa
+    service-name: zahmed_app-xsuaa-srv
+    service-plan: application
+- name: zahmed_app-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: zahmed_app-destination-service
+    service-plan: lite
+- name: zahmed_app-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: zahmed_app-html5-srv
+    service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
